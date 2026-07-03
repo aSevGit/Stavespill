@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Anni Stavespill 🦄</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive;
+  background: linear-gradient(180deg, #8fd3ff 0%, #c4e6ff 22%, #ffd9ee 55%, #ffe9c4 85%, #fff3d4 100%);
+  min-height: 100vh;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ── Sky decorations ── */
+.sky-sun {
+  position: fixed; top: 12px; left: 14px; z-index: 0;
+  font-size: clamp(3rem, 10vw, 4.5rem); pointer-events: none;
+  animation: sunSpin 30s linear infinite;
+  filter: drop-shadow(0 0 22px rgba(255, 216, 80, .9));
+}
+@keyframes sunSpin { to { transform: rotate(360deg); } }
+.sky-cloud {
+  position: fixed; z-index: 0; pointer-events: none; opacity: .9;
+  font-size: clamp(2.2rem, 8vw, 3.4rem);
+  animation: cloudDrift linear infinite;
+}
+.sky-cloud.c1 { top: 7%;  animation-duration: 65s; }
+.sky-cloud.c2 { top: 18%; animation-duration: 90s; animation-delay: -35s; font-size: clamp(1.8rem, 6vw, 2.6rem); }
+.sky-cloud.c3 { top: 30%; animation-duration: 75s; animation-delay: -58s; }
+@keyframes cloudDrift { from { left: -15%; } to { left: 105%; } }
+
+.rainbow-arc {
+  position: fixed; bottom: -8vw; right: -6vw; z-index: 0;
+  font-size: clamp(5rem, 18vw, 9rem); pointer-events: none; opacity: .55;
+}
+
+/* ── Floating background ── */
+.bg-deco {
+  position: fixed; pointer-events: none; opacity: 0.3;
+  animation: floatDeco linear infinite;
+  font-size: 2.4rem; z-index: 0;
+}
+@keyframes floatDeco {
+  0%   { transform: translateY(110vh) rotate(0deg); }
+  100% { transform: translateY(-20vh) rotate(360deg); }
+}
+
+/* ── Screens ── */
+.screen { display: none; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 20px; position: relative; z-index: 1; }
+.screen.active { display: flex; }
+
+/* ── Welcome ── */
+#welcome h1 {
+  font-size: clamp(2.2rem, 8vw, 3.4rem); color: #fff;
+  text-shadow: 0 4px 0 #c2185b, 0 8px 16px rgba(194,24,91,.3);
+  margin-bottom: 6px; text-align: center; line-height: 1.2;
+}
+#welcome .tagline {
+  font-size: 1.3rem; color: #8a3d75; margin-bottom: 28px; text-align: center;
+  background: rgba(255,255,255,.6); padding: 6px 20px; border-radius: 999px;
+}
+.welcome-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(640px, 94vw);
+}
+.mode-card {
+  background: #fff; border: 4px solid #ff4da6; border-radius: 28px;
+  padding: 16px 20px; font-size: 1.25rem; font-family: inherit;
+  color: #c2185b; cursor: pointer; margin: 0;
+  box-shadow: 0 8px 0 #f06292, 0 12px 24px rgba(240,98,146,.25);
+  transition: transform .12s, box-shadow .12s;
+  display: flex; align-items: center; gap: 12px; width: 100%;
+}
+.mode-card:hover  { transform: translateY(-4px); box-shadow: 0 12px 0 #f06292, 0 16px 28px rgba(240,98,146,.3); }
+.mode-card:active { transform: translateY(4px);  box-shadow: 0 4px 0 #f06292; }
+.mode-icon {
+  font-size: 1.9rem;
+  background: rgba(255,255,255,.75);
+  border-radius: 50%;
+  width: 52px; height: 52px; flex: 0 0 52px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,.9), 0 2px 6px rgba(0,0,0,.12);
+}
+
+/* Per-game candy colors */
+.mode-card[data-mode="spell"]   { border-color:#ff4da6; color:#c2185b; background:linear-gradient(180deg,#fff,#ffe3f0); box-shadow:0 8px 0 #e0498f, 0 12px 24px rgba(224,73,143,.25); }
+.mode-card[data-mode="match"]   { border-color:#ff8a00; color:#a34e00; background:linear-gradient(180deg,#fff,#ffedd6); box-shadow:0 8px 0 #e07800, 0 12px 24px rgba(224,120,0,.25); }
+.mode-card[data-mode="math"]    { border-color:#2eaf5f; color:#156536; background:linear-gradient(180deg,#fff,#e2f9e8); box-shadow:0 8px 0 #279551, 0 12px 24px rgba(39,149,81,.25); }
+.mode-card[data-mode="case"]    { border-color:#9b59d0; color:#5e2a8a; background:linear-gradient(180deg,#fff,#f1e3fc); box-shadow:0 8px 0 #8447b8, 0 12px 24px rgba(132,71,184,.25); }
+.mode-card[data-mode="read"]    { border-color:#3498db; color:#1b5e8f; background:linear-gradient(180deg,#fff,#e0f0fc); box-shadow:0 8px 0 #2a80ba, 0 12px 24px rgba(42,128,186,.25); }
+.mode-card[data-mode="rime"]    { border-color:#f0b429; color:#8a5d00; background:linear-gradient(180deg,#fff,#fff4d6); box-shadow:0 8px 0 #d19a12, 0 12px 24px rgba(209,154,18,.25); }
+.mode-card[data-mode="speak"]   { border-color:#17a2b8; color:#0c5f6e; background:linear-gradient(180deg,#fff,#dcf6fa); box-shadow:0 8px 0 #128799, 0 12px 24px rgba(18,135,153,.25); }
+.mode-card[data-mode="english"] { border-color:#e74c3c; color:#96271a; background:linear-gradient(180deg,#fff,#fde3e0); box-shadow:0 8px 0 #c73c2d, 0 12px 24px rgba(199,60,45,.25); }
+.mode-card.done {
+  border-color: #2eaf5f;
+  color: #156536;
+  box-shadow: 0 8px 0 #2a9c55, 0 12px 24px rgba(46, 175, 95, .28);
+  background: linear-gradient(180deg, #f7fff9, #e7ffe9);
+}
+.mode-card.done:hover {
+  box-shadow: 0 12px 0 #2a9c55, 0 16px 28px rgba(46, 175, 95, .32);
+}
+
+/* ── Header bar ── */
+.hdr {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: rgba(255,255,255,.55); backdrop-filter: blur(12px);
+  border-bottom: 3px solid rgba(255,77,166,.3);
+}
+.hdr-back {
+  background: none; border: 3px solid #ff4da6; border-radius: 20px;
+  padding: 7px 16px; font-family: inherit; font-size: 1rem; color: #c2185b; cursor: pointer;
+}
+.hdr-score { font-size: 1.3rem; color: #c2185b; font-weight: bold; }
+.prog-wrap { width: 100px; height: 14px; background: rgba(255,77,166,.2); border-radius: 8px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg,#ff69b4,#ff1493); border-radius: 8px; transition: width .4s; }
+
+/* ── Emoji display ── */
+.big-emoji {
+  font-size: clamp(5rem, 18vw, 8rem); margin: 16px 0;
+  display: block; text-align: center;
+  animation: pop .35s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 6px 12px rgba(194,24,91,.25));
+}
+
+/* ── Picture frame around the big emoji ── */
+.pic-frame {
+  width: clamp(150px, 42vw, 210px);
+  height: clamp(150px, 42vw, 210px);
+  border-radius: 38px;
+  border: 6px solid transparent;
+  background:
+    linear-gradient(180deg, #ffffff, #fff7fb) padding-box,
+    linear-gradient(135deg, #ff9a9e, #fad0c4, #ffe58a, #a8e6cf, #a1c4fd, #d4a5f9) border-box;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 12px 26px rgba(120, 60, 120, .22);
+  margin: 12px 0;
+  animation: frameWiggle 5s ease-in-out infinite;
+}
+@keyframes frameWiggle {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50%      { transform: rotate(1.2deg); }
+}
+.pic-frame .big-emoji {
+  margin: 0;
+  font-size: clamp(4.6rem, 15vw, 6.8rem);
+}
+@keyframes pop {
+  0%   { transform: scale(.4); opacity: .5; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Instruction label ── */
+.label {
+  color: #8a3d75; font-size: 1.15rem; margin-bottom: 4px; font-weight: bold;
+  background: rgba(255,255,255,.6); padding: 6px 18px; border-radius: 999px;
+}
+
+/* ── Answer slots ── */
+.slots { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 12px 0; }
+.slot {
+  width: clamp(46px, 12vw, 62px); height: clamp(54px, 14vw, 70px);
+  border: 4px solid #ff69b4; border-radius: 14px; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.4rem, 5vw, 2rem); font-weight: bold; color: #c2185b;
+  transition: background .2s, border-color .2s;
+}
+.slot.filled   { background: #fff0f7; border-color: #ff1493; }
+.slot.ok       { background: #d4edda; border-color: #28a745; color: #155724; }
+.slot.bad      { background: #ffe0e8; animation: shake .4s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-9px)} 75%{transform:translateX(9px)} }
+
+/* ── Letter tiles ── */
+.tiles { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 10px 0; max-width: 380px; }
+.tile {
+  width: clamp(46px, 12vw, 62px); height: clamp(54px, 14vw, 70px);
+  border: 4px solid #ff69b4; border-radius: 14px; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.4rem, 5vw, 2rem); font-weight: bold; color: #ff1493;
+  cursor: pointer; box-shadow: 0 5px 0 #f06292;
+  transition: transform .1s, box-shadow .1s, opacity .15s;
+}
+.tile:hover  { transform: translateY(-3px); box-shadow: 0 8px 0 #f06292; }
+.tile:active { transform: translateY(3px); box-shadow: 0 2px 0 #f06292; }
+.tile.used   { opacity: 0; pointer-events: none; }
+
+.clear-btn {
+  background: rgba(255,255,255,.55); border: 3px solid #ff69b4; border-radius: 20px;
+  padding: 9px 22px; font-family: inherit; font-size: 1rem; color: #c2185b; cursor: pointer; margin-top: 6px;
+}
+
+.input-toggle-btn {
+  background: rgba(255,255,255,.75);
+  border: 3px solid #ff69b4;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #c2185b;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+#spell-input-toggle {
+  background: linear-gradient(180deg, #fff9d8 0%, #ffe17a 100%);
+  border: 4px solid #ff8a00;
+  color: #8a2b00;
+  font-size: 1.15rem;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 24px;
+  box-shadow: 0 7px 0 #d46d00, 0 10px 20px rgba(212,109,0,.28);
+  margin-bottom: 14px;
+}
+
+#spell-input-toggle:hover  { transform: translateY(-3px); box-shadow: 0 10px 0 #d46d00, 0 13px 22px rgba(212,109,0,.3); }
+#spell-input-toggle:active { transform: translateY(3px);  box-shadow: 0 3px 0 #d46d00; }
+
+#match-case-toggle {
+  background: linear-gradient(180deg, #fff9d8 0%, #ffe17a 100%);
+  border: 4px solid #ff8a00;
+  color: #8a2b00;
+  font-size: 1.15rem;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 24px;
+  box-shadow: 0 7px 0 #d46d00, 0 10px 20px rgba(212,109,0,.28);
+  margin-bottom: 14px;
+}
+
+#match-case-toggle:hover  { transform: translateY(-3px); box-shadow: 0 10px 0 #d46d00, 0 13px 22px rgba(212,109,0,.3); }
+#match-case-toggle:active { transform: translateY(3px);  box-shadow: 0 3px 0 #d46d00; }
+
+.input-hint {
+  color: #fff5f9;
+  font-size: 1rem;
+  margin: 2px 0 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+/* ── Feedback text ── */
+.fb { font-size: 1.6rem; font-weight: bold; min-height: 48px; text-align: center; margin: 6px 0; }
+.fb.ok-txt  { color: #1a6b2a; }
+.fb.bad-txt { color: #b0003a; }
+
+/* ── Match game word ── */
+.big-word {
+  font-size: clamp(2.4rem, 10vw, 4rem); font-weight: bold; color: #c2185b;
+  letter-spacing: 6px; margin: 14px 0;
+  text-transform: uppercase;
+  background: rgba(255,255,255,.75); padding: 4px 26px; border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(194,24,91,.18);
+}
+
+/* ── Image option grid ── */
+.img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; max-width: 380px; width: 100%; }
+.img-opt {
+  background: #fff; border: 4px solid #ff69b4; border-radius: 22px;
+  padding: 18px 10px; font-size: clamp(2.8rem, 10vw, 4.2rem); text-align: center;
+  cursor: pointer; box-shadow: 0 6px 0 #f06292;
+  transition: transform .1s, box-shadow .1s;
+}
+.img-opt:hover  { transform: translateY(-4px); box-shadow: 0 10px 0 #f06292; }
+.img-opt:active { transform: translateY(3px);  box-shadow: 0 3px 0 #f06292; }
+.img-opt:nth-child(1) { background: linear-gradient(180deg,#fff,#ffe9f2); }
+.img-opt:nth-child(2) { background: linear-gradient(180deg,#fff,#e7f3ff); }
+.img-opt:nth-child(3) { background: linear-gradient(180deg,#fff,#fff7dd); }
+.img-opt:nth-child(4) { background: linear-gradient(180deg,#fff,#e8fbea); }
+.img-opt.ok     { background: #d4edda; border-color: #28a745; animation: pop .35s; }
+.img-opt.bad    { background: #ff4d4f; border-color: #b71c1c; color: #fff; box-shadow: 0 6px 0 #b71c1c; animation: shake .4s; }
+.img-opt .opt-word {
+  display: block; font-size: clamp(1rem, 3.5vw, 1.3rem); font-weight: bold;
+  color: #8a3d75; letter-spacing: 2px; margin-top: 4px;
+}
+.img-opt.bad .opt-word { color: #fff; }
+
+/* ── Reading game ── */
+.read-sentence {
+  font-size: clamp(1.6rem, 6vw, 2.3rem);
+  font-weight: bold;
+  color: #b02576;
+  text-align: center;
+  margin: 12px 0 10px;
+  line-height: 1.35;
+  max-width: 560px;
+  background: rgba(255,255,255,.75);
+  padding: 10px 22px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(194,24,91,.18);
+}
+
+/* ── Math game ── */
+.math-eq {
+  font-size: clamp(3rem, 12vw, 5.2rem); font-weight: bold; color: #c2185b;
+  letter-spacing: 4px; margin: 8px 0;
+  text-align: center;
+  background: rgba(255,255,255,.75); padding: 2px 28px; border-radius: 26px;
+  box-shadow: 0 4px 12px rgba(194,24,91,.18);
+}
+.math-dots {
+  font-size: clamp(1rem, 4vw, 1.4rem); color: #8a3d75;
+  margin: 4px 12px 8px; text-align: center;
+  line-height: 1.8; min-height: 44px; max-width: 340px;
+  word-break: break-all;
+}
+.num-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  max-width: 320px; width: 100%; margin: 10px 0;
+}
+.num-btn {
+  background: #fff; border: 4px solid #ff69b4; border-radius: 22px;
+  padding: 22px 10px; font-size: clamp(2rem, 8vw, 3rem); font-weight: bold;
+  color: #c2185b; font-family: inherit; cursor: pointer;
+  box-shadow: 0 6px 0 #f06292; transition: transform .1s, box-shadow .1s;
+}
+.num-btn:hover  { transform: translateY(-4px); box-shadow: 0 10px 0 #f06292; }
+.num-btn:active { transform: translateY(3px);  box-shadow: 0 3px 0 #f06292; }
+.num-btn.ok     { background: #d4edda; border-color: #28a745; animation: pop .35s; }
+.num-btn.bad    { background: #ff4d4f; border-color: #b71c1c; color: #fff; box-shadow: 0 6px 0 #b71c1c; animation: shake .4s; }
+
+/* ── Lowercase to uppercase game ── */
+.case-lower {
+  font-size: clamp(4rem, 16vw, 7rem);
+  font-weight: bold;
+  color: #c2185b;
+  margin: 10px 0 8px;
+  line-height: 1.1;
+  background: rgba(255,255,255,.8);
+  padding: 4px 40px;
+  border-radius: 32px;
+  box-shadow: 0 4px 12px rgba(194,24,91,.18);
+}
+.case-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(44px, 1fr));
+  gap: 10px;
+  width: min(520px, 92vw);
+  margin: 10px 0;
+}
+.case-btn {
+  background: #fff;
+  border: 4px solid #ff69b4;
+  border-radius: 16px;
+  padding: 16px 8px;
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  font-weight: bold;
+  color: #c2185b;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #f06292;
+  transition: transform .1s, box-shadow .1s;
+}
+.case-btn:hover  { transform: translateY(-3px); box-shadow: 0 9px 0 #f06292; }
+.case-btn:active { transform: translateY(3px);  box-shadow: 0 3px 0 #f06292; }
+.case-btn.ok     { background: #d4edda; border-color: #28a745; animation: pop .35s; }
+.case-btn.bad    { background: #ffe0e8; border-color: #e57373; animation: shake .4s; }
+
+/* ── Speak game (Si Ordet) ── */
+.mic-btn {
+  width: clamp(96px, 26vw, 130px);
+  height: clamp(96px, 26vw, 130px);
+  border-radius: 50%;
+  font-size: clamp(2.8rem, 10vw, 4rem);
+  font-family: inherit;
+  background: linear-gradient(180deg, #fff, #dcf6fa);
+  border: 6px solid #17a2b8;
+  color: #0c5f6e;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #128799, 0 12px 24px rgba(18,135,153,.3);
+  transition: transform .12s, box-shadow .12s;
+  margin: 10px 0 6px;
+}
+.mic-btn:hover  { transform: translateY(-4px); box-shadow: 0 12px 0 #128799, 0 16px 28px rgba(18,135,153,.35); }
+.mic-btn:active { transform: translateY(4px);  box-shadow: 0 4px 0 #128799; }
+.mic-btn.listening {
+  background: linear-gradient(180deg, #ffe9f2, #ffb6d9);
+  border-color: #ff1493;
+  box-shadow: 0 8px 0 #c2185b, 0 0 0 0 rgba(255,20,147,.5);
+  animation: micPulse 1.1s ease-out infinite;
+}
+@keyframes micPulse {
+  0%   { box-shadow: 0 8px 0 #c2185b, 0 0 0 0 rgba(255,20,147,.45); }
+  100% { box-shadow: 0 8px 0 #c2185b, 0 0 0 26px rgba(255,20,147,0); }
+}
+.mic-status {
+  color: #0c5f6e;
+  font-size: 1.05rem;
+  font-weight: bold;
+  text-align: center;
+  background: rgba(255,255,255,.65);
+  padding: 6px 18px;
+  border-radius: 999px;
+  margin: 4px 0 10px;
+  max-width: 90vw;
+}
+
+/* ── Stars ── */
+#fx { position: fixed; inset: 0; pointer-events: none; z-index: 99; }
+.star { position: absolute; font-size: 1.8rem; animation: starUp 1.1s ease-out forwards; }
+@keyframes starUp {
+  0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+  100% { transform: scale(2.2) rotate(400deg) translateY(-90px); opacity: 0; }
+}
+
+/* ── Victory ── */
+#victory { text-align: center; }
+#victory .trophy { font-size: clamp(5rem, 18vw, 8rem); animation: bounce 1s ease-in-out infinite; display: block; margin: 10px 0; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-28px)} }
+#victory h2 { font-size: clamp(2rem, 7vw, 3rem); color: #fff; text-shadow: 0 4px 0 #c2185b; margin-bottom: 12px; }
+#victory .sub {
+  font-size: 1.3rem; color: #8a3d75; margin: 8px 0;
+  background: rgba(255,255,255,.6); padding: 6px 20px; border-radius: 999px;
+}
+#victory .deco-row { font-size: 2.6rem; margin: 18px 0; }
+.play-again {
+  background: #fff; border: 4px solid #ff1493; border-radius: 28px;
+  padding: 18px 44px; font-size: 1.4rem; font-family: inherit;
+  color: #c2185b; cursor: pointer; margin-top: 10px;
+  box-shadow: 0 8px 0 #f06292; transition: transform .12s, box-shadow .12s;
+}
+.play-again:hover  { transform: translateY(-4px); box-shadow: 0 12px 0 #f06292; }
+.play-again:active { transform: translateY(4px);  box-shadow: 0 4px 0 #f06292; }
+
+/* ── Streak badge ── */
+.streak {
+  position: fixed; top: 66px; right: 14px; z-index: 20;
+  background: #ff1493; color: #fff; border-radius: 20px;
+  padding: 6px 14px; font-size: 1rem; font-weight: bold;
+  box-shadow: 0 3px 0 #c2185b;
+  opacity: 0; transform: scale(.7); transition: opacity .3s, transform .3s;
+}
+.streak.show { opacity: 1; transform: scale(1); }
+
+/* ── Reward progress ── */
+.reward-panel {
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: min(880px, 94vw);
+  background: rgba(255,255,255,.72);
+  border: 3px solid rgba(255,77,166,.5);
+  border-radius: 16px;
+  padding: 8px 12px 10px;
+  z-index: 30;
+  backdrop-filter: blur(10px);
+}
+.reward-text {
+  color: #c2185b;
+  font-weight: bold;
+  font-size: .98rem;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.reward-track {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  border: 3px solid #ff69b4;
+  border-radius: 999px;
+  background: #ffe6f3;
+  overflow: hidden;
+}
+.reward-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff69b4 0%, #ff1493 60%, #ff4da6 100%);
+  transition: width .45s ease;
+}
+.reward-ice {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.35rem;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.8));
+}
+.parent-reset-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.parent-reset-btn {
+  background: rgba(255,255,255,.9);
+  border: 2px solid #f7a7cd;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #b75887;
+  font-family: inherit;
+  font-size: .76rem;
+  cursor: pointer;
+  opacity: .65;
+  user-select: none;
+}
+.parent-reset-btn:hover {
+  opacity: .9;
+}
+.parent-reset-btn.holding {
+  background: #fff;
+  border-color: #ff1493;
+  color: #c2185b;
+  opacity: 1;
+}
+
+/* ── Ice reward modal ── */
+.ice-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(194,24,91,.45);
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+.ice-modal.show { display: flex; }
+.ice-box {
+  width: min(560px, 95vw);
+  background: linear-gradient(180deg, #fff 0%, #fff0f7 100%);
+  border: 5px solid #ff4da6;
+  border-radius: 26px;
+  text-align: center;
+  padding: 20px 16px 22px;
+  box-shadow: 0 14px 30px rgba(194,24,91,.35);
+  animation: pop .35s cubic-bezier(.34,1.56,.64,1);
+}
+.ice-big {
+  font-size: clamp(4.4rem, 16vw, 7rem);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.ice-title {
+  font-size: clamp(1.6rem, 6vw, 2.6rem);
+  color: #c2185b;
+  text-shadow: 0 2px 0 #ffd1e8;
+  margin-bottom: 8px;
+}
+.ice-emoji-row {
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  margin-bottom: 12px;
+}
+.ice-ok {
+  background: #fff;
+  border: 4px solid #ff1493;
+  border-radius: 22px;
+  padding: 10px 22px;
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: #c2185b;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #f06292;
+}
+.ice-ok:hover  { transform: translateY(-3px); box-shadow: 0 9px 0 #f06292; }
+.ice-ok:active { transform: translateY(3px); box-shadow: 0 3px 0 #f06292; }
+
+@media (max-width: 760px), (max-height: 820px) {
+  .screen { padding-bottom: 130px; }
+  #welcome { padding-bottom: 140px; }
+  #welcome h1 { font-size: clamp(1.8rem, 7vw, 2.6rem); }
+  .welcome-modes {
+    gap: 10px;
+    width: min(620px, 100%);
+  }
+  .welcome-modes .mode-card {
+    padding: 14px 10px;
+    font-size: clamp(.9rem, 3.5vw, 1.05rem);
+    border-radius: 20px;
+    gap: 8px;
+  }
+  .welcome-modes .mode-icon {
+    font-size: 1.5rem;
+    width: 40px; height: 40px; flex: 0 0 40px;
+  }
+}
+
+@media (max-width: 520px) {
+  .case-grid {
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
+  }
+  .reward-panel {
+    bottom: 8px;
+    padding: 7px 10px 9px;
+  }
+  .reward-track {
+    height: 22px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="fx"></div>
+<div class="sky-sun">☀️</div>
+<div class="sky-cloud c1">☁️</div>
+<div class="sky-cloud c2">☁️</div>
+<div class="sky-cloud c3">⛅</div>
+<div class="rainbow-arc">🌈</div>
+<div class="streak" id="streak-badge">🔥 3 på rad!</div>
+<div class="reward-panel">
+  <div class="reward-text">🍦 IS-POENG: <span id="reward-points">0</span> / 60</div>
+  <div class="reward-track">
+    <div class="reward-fill" id="reward-fill"></div>
+    <span class="reward-ice">🍦</span>
+  </div>
+  <div class="parent-reset-wrap">
+    <button class="parent-reset-btn" id="parent-reset-btn" type="button" aria-label="Foreldreknapp for nullstilling">Foreldre: hold 2s</button>
+  </div>
+</div>
+
+<div class="ice-modal" id="ice-modal">
+  <div class="ice-box">
+    <div class="ice-big">🍦</div>
+    <h2 class="ice-title">JIPPI! DU VANT EN IS</h2>
+    <div class="ice-emoji-row">🍦🍨🍦🍨🍦🍨🍦🍨🍦🍨🍦</div>
+    <button class="ice-ok" onclick="closeIceModal()">NAM! 😍</button>
+  </div>
+</div>
+
+<!-- ════════ WELCOME ════════ -->
+<div class="screen active" id="welcome">
+  <div style="font-size:clamp(3.5rem,14vw,5.5rem); margin-bottom:6px; text-align:center">🦄🐴🐕</div>
+  <h1>ANNI BOKSTAV SPILL</h1>
+  <p class="tagline">Velg hva du vil øve på 🌸</p>
+  <div class="welcome-modes">
+    <button class="mode-card" data-mode="spell" onclick="startGame('spell')">
+      <span class="mode-icon">✏️</span> STAV BILDET
+    </button>
+    <button class="mode-card" data-mode="match" onclick="startGame('match')">
+      <span class="mode-icon">🔍</span> FINN BILDET
+    </button>
+    <button class="mode-card" data-mode="math" onclick="startGame('math')">
+      <span class="mode-icon">🔢</span> 1 + 1 = 2
+    </button>
+    <button class="mode-card" data-mode="case" onclick="startGame('case')">
+      <span class="mode-icon">🔠</span> Små bokstaver
+    </button>
+    <button class="mode-card" data-mode="read" onclick="startGame('read')">
+      <span class="mode-icon">📖</span> LESE
+    </button>
+    <button class="mode-card" data-mode="rime" onclick="startGame('rime')">
+      <span class="mode-icon">🎵</span> RIME
+    </button>
+    <button class="mode-card" data-mode="speak" onclick="startGame('speak')">
+      <span class="mode-icon">🎤</span> SI ORDET
+    </button>
+    <button class="mode-card" data-mode="english" onclick="startGame('english')">
+      <span class="mode-icon">🇬🇧</span> ENGELSK
+    </button>
+  </div>
+</div>
+
+<!-- ════════ SPELL GAME ════════ -->
+<div class="screen" id="spell-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="spell-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="spell-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <button class="input-toggle-btn" id="spell-input-toggle" onclick="toggleSpellInputMode()">⌨️ Tastatur: PÅ</button>
+    <div class="pic-frame"><span class="big-emoji" id="spell-emoji">🐕</span></div>
+    <div class="slots" id="slots"></div>
+    <div class="fb" id="spell-fb"></div>
+    <div class="tiles" id="tiles"></div>
+    <button class="clear-btn" onclick="clearSpell()">⌫ Slett siste</button>
+  </div>
+</div>
+
+<!-- ════════ MATCH GAME ════════ -->
+<div class="screen" id="match-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="match-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="match-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <button class="input-toggle-btn" id="match-case-toggle" onclick="toggleMatchCaseMode()">🔡 Små bokstaver: PÅ</button>
+    <div class="big-word" id="match-word">HUND</div>
+    <div class="fb" id="match-fb"></div>
+    <div class="img-grid" id="img-grid"></div>
+  </div>
+</div>
+
+<!-- ════════ MATH GAME ════════ -->
+<div class="screen" id="math-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="math-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="math-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <div class="label">Hva er svaret?</div>
+    <div class="math-eq" id="math-eq">3 + 4 = ?</div>
+    <div class="math-dots" id="math-dots"></div>
+    <div class="fb" id="math-fb"></div>
+    <div class="num-grid" id="num-grid"></div>
+  </div>
+</div>
+
+<!-- ════════ CASE GAME ════════ -->
+<div class="screen" id="case-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="case-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="case-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <div class="label">Hvilken STOR bokstav passer til:</div>
+    <div class="case-lower" id="case-lower">a</div>
+    <div class="fb" id="case-fb"></div>
+    <div class="case-grid" id="case-grid"></div>
+  </div>
+</div>
+
+<!-- ════════ READ GAME ════════ -->
+<div class="screen" id="read-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="read-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="read-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <div class="label">Les setningen og stav ordet som mangler:</div>
+    <div class="read-sentence" id="read-sentence">JENTA LESER EN _ _ _</div>
+    <div class="pic-frame" style="width:clamp(100px,26vw,140px); height:clamp(100px,26vw,140px); border-radius:28px;">
+      <span class="big-emoji" id="read-emoji" style="font-size:clamp(3rem,10vw,4.6rem);">📖</span>
+    </div>
+    <div class="slots" id="read-slots"></div>
+    <div class="fb" id="read-fb"></div>
+    <div class="tiles" id="read-tiles"></div>
+    <button class="clear-btn" onclick="clearRead()">⌫ Slett siste</button>
+  </div>
+</div>
+
+<!-- ════════ RHYME GAME ════════ -->
+<div class="screen" id="rime-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="rime-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="rime-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <div class="label">Hvilket bilde rimer på ordet?</div>
+    <div class="big-word" id="rime-word">KATT</div>
+    <div class="pic-frame" style="width:clamp(90px,24vw,130px); height:clamp(90px,24vw,130px); border-radius:26px;">
+      <span class="big-emoji" id="rime-emoji" style="font-size:clamp(2.8rem,9vw,4.2rem);">🐱</span>
+    </div>
+    <div class="fb" id="rime-fb"></div>
+    <div class="img-grid" id="rime-grid"></div>
+  </div>
+</div>
+
+<!-- ════════ SPEAK GAME (Si Ordet) ════════ -->
+<div class="screen" id="speak-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="speak-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="speak-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <div class="label">Les ordet høyt:</div>
+    <div class="big-word" id="speak-word">HUND</div>
+    <div class="pic-frame" style="width:clamp(100px,26vw,140px); height:clamp(100px,26vw,140px); border-radius:28px;">
+      <span class="big-emoji" id="speak-emoji" style="font-size:clamp(3rem,10vw,4.6rem);">❓</span>
+    </div>
+    <div class="fb" id="speak-fb"></div>
+    <button class="mic-btn" id="mic-btn" onclick="startListening()">🎤</button>
+    <div class="mic-status" id="mic-status">Trykk på mikrofonen og si ordet!</div>
+    <button class="clear-btn" onclick="skipSpeak()">Hopp over ➡️</button>
+  </div>
+</div>
+
+<!-- ════════ ENGLISH GAME ════════ -->
+<div class="screen" id="english-screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">← Hjem</button>
+    <div class="hdr-score">⭐ <span id="english-score">0</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="english-prog" style="width:0%"></div></div>
+  </div>
+  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+    <div class="label">Trykk på bildet som passer ordet:</div>
+    <div class="big-word" id="english-word">DOG</div>
+    <div class="fb" id="english-fb"></div>
+    <div class="img-grid" id="english-grid"></div>
+  </div>
+</div>
+
+<!-- ════════ VICTORY ════════ -->
+<div class="screen" id="victory">
+  <span class="trophy">🏆</span>
+  <h2>Fantastisk! 🎉</h2>
+  <p class="sub" id="victory-sub">Du er en ekte mester!</p>
+  <div class="deco-row">🦄⭐🌟💖🐴✨💕</div>
+  <button class="play-again" onclick="goHome()">Spill igjen!</button>
+</div>
+
+<script>
+// ── Word bank ─────────────────────────────────────────────────────────────
+const words = [
+  { w:'ku',    e:'🐄' }, { w:'is',    e:'🍦' },
+  { w:'bil',   e:'🚗' }, { w:'sol',   e:'☀️' },
+  { w:'rev',   e:'🦊' }, { w:'orm',   e:'🐍' },
+  { w:'mus',   e:'🐭' }, { w:'and',   e:'🦆' },
+  { w:'sau',   e:'🐑' }, { w:'bok',   e:'📚' },
+  { w:'tre',   e:'🌳' }, { w:'ulv',   e:'🐺' },
+  { w:'bær',   e:'🍓' }, { w:'ørn',   e:'🦅' },
+  { w:'hus',   e:'🏠' }, { w:'båt',   e:'⛵' },
+  { w:'hund',  e:'🐕' }, { w:'hest',  e:'🐴' },
+  { w:'katt',  e:'🐱' }, { w:'ball',  e:'⚽' },
+  { w:'fisk',  e:'🐟' }, { w:'fugl',  e:'🐦' },
+  { w:'eple',  e:'🍎' }, { w:'gris',  e:'🐷' },
+  { w:'løve',  e:'🦁' }, { w:'høne',  e:'🐔' },
+  { w:'bjørn', e:'🐻' }, { w:'tiger', e:'🐯' },
+  { w:'kanin', e:'🐰' }, { w:'zebra', e:'🦓' },
+  { w:'konge', e:'👑' }, { w:'krone', e:'👑' },
+  { w:'stol',  e:'🪑' }, { w:'måne',  e:'🌙' },
+  { w:'drage', e:'🐉' }, { w:'panda', e:'🐼' },
+  { w:'koala', e:'🐨' }, { w:'pizza', e:'🍕' },
+  { w:'kake',  e:'🎂' }, { w:'banan', e:'🍌' },
+  { w:'melon', e:'🍉' }, { w:'snegle', e:'🐌' },
+  { w:'bamse', e:'🧸' }, { w:'robot', e:'🤖' },
+  { w:'slott', e:'🏰' }, { w:'frosk', e:'🐸' },
+  { w:'hval',  e:'🐋' }, { w:'ugle',  e:'🦉' },
+  { w:'hytte', e:'🏡' }, { w:'veske', e:'👜' },
+  { w:'sitron', e:'🍋' }, { w:'gulrot', e:'🥕' },
+  { w:'tomat', e:'🍅' }, { w:'sopp',  e:'🍄' },
+  { w:'blomst', e:'🌼' }, { w:'sykkel', e:'🚲' },
+  { w:'buss',  e:'🚌' }, { w:'tog',   e:'🚂' },
+  { w:'fly',   e:'✈️' }, { w:'klokke', e:'⏰' },
+  { w:'nøkkel', e:'🔑' }, { w:'gave',  e:'🎁' },
+  { w:'drue',  e:'🍇' }, { w:'brød',  e:'🍞' },
+  { w:'ost',   e:'🧀' }, { w:'egg',   e:'🥚' },
+  { w:'melk',  e:'🥛' }, { w:'sokk',  e:'🧦' },
+  { w:'sko',   e:'👟' }, { w:'krabbe', e:'🦀' },
+  { w:'hai',   e:'🦈' }, { w:'ape',   e:'🐵' },
+  { w:'bie',   e:'🐝' }, { w:'maur',  e:'🐜' },
+  { w:'saks',  e:'✂️' }, { w:'seng',  e:'🛏️' },
+  { w:'dør',   e:'🚪' }, { w:'nese',  e:'👃' },
+  { w:'hånd',  e:'✋' }, { w:'fot',   e:'🦶' },
+  { w:'tann',  e:'🦷' }, { w:'hjerte', e:'❤️' },
+  { w:'pære',  e:'🍐' }, { w:'ananas', e:'🍍' },
+  { w:'agurk', e:'🥒' }, { w:'mais',  e:'🌽' },
+  { w:'vaffel', e:'🧇' }, { w:'pølse', e:'🌭' },
+  { w:'rakett', e:'🚀' }, { w:'tromme', e:'🥁' },
+  { w:'gitar', e:'🎸' }, { w:'piano', e:'🎹' },
+  { w:'kjole', e:'👗' }, { w:'bukse', e:'👖' },
+  { w:'hatt',  e:'🎩' }, { w:'klovn', e:'🤡' },
+  { w:'troll', e:'🧌' }, { w:'delfin', e:'🐬' },
+  { w:'hjort', e:'🦌' }, { w:'ring',  e:'💍' },
+  { w:'sekk',  e:'🎒' }, { w:'skje',  e:'🥄' },
+];
+
+const praises = [
+  'Kjempebra! 🌟','Du er flink! ⭐','Riktig! Hurra! 🎉',
+  'Wow, flott! 💖','Supert! 🦄','Du er best! 🏆',
+  'Helt riktig! 🌈','Strålende! ✨','Ja! Bravo! 🎊',
+];
+
+const dotEmoji = ['🌸','💖','⭐','🦄','🐴','🌟','💕','🍓'];
+const alphabetLower = 'abcdefghijklmnopqrstuvwxyzæøå'.split('');
+const alphabetPairs = alphabetLower.map(ch => ({ lower: ch, upper: ch.toUpperCase() }));
+const readPrompts = [
+  { before: 'JENTA LESER EN',      word: 'bok',   emoji: '📚' },
+  { before: 'GUTTEN SPISER EN',    word: 'is',    emoji: '🍦' },
+  { before: 'JEG SER EN',          word: 'hund',  emoji: '🐕' },
+  { before: 'KATTEN DRIKKER',      word: 'melk',  emoji: '🥛' },
+  { before: 'VI BOR I ET',         word: 'hus',   emoji: '🏠' },
+  { before: 'BONDEN HAR EN',       word: 'ku',    emoji: '🐄' },
+  { before: 'JENTA HAR EN RØD',    word: 'bil',   emoji: '🚗' },
+  { before: 'FUGLEN SITTER I ET',  word: 'tre',   emoji: '🌳' },
+  { before: 'GUTTEN SPARKER EN',   word: 'ball',  emoji: '⚽' },
+  { before: 'JEG TEGNER EN GUL',   word: 'sol',   emoji: '☀️' },
+  { before: 'PRINSESSEN BOR I ET', word: 'slott', emoji: '🏰' },
+  { before: 'JEG SPISER ET RØDT',  word: 'eple',  emoji: '🍎' },
+  { before: 'PÅ HODET HAR JEG EN', word: 'lue',   emoji: '🧢' },
+  { before: 'OM NATTEN SER VI EN', word: 'måne',  emoji: '🌙' }
+];
+
+const rhymePrompts = [
+  { w: 'katt',  e: '🐱', r: 'hatt',  re: '🎩' },
+  { w: 'mus',   e: '🐭', r: 'hus',   re: '🏠' },
+  { w: 'sol',   e: '☀️', r: 'stol',  re: '🪑' },
+  { w: 'gris',  e: '🐷', r: 'is',    re: '🍦' },
+  { w: 'bjørn', e: '🐻', r: 'ørn',   re: '🦅' },
+  { w: 'tann',  e: '🦷', r: 'mann',  re: '👨' },
+  { w: 'vott',  e: '🧤', r: 'slott', re: '🏰' },
+  { w: 'hest',  e: '🐴', r: 'fest',  re: '🎉' },
+  { w: 'lås',   e: '🔒', r: 'gås',   re: '🪿' },
+  { w: 'ost',   e: '🧀', r: 'post',  re: '📮' }
+];
+const englishPrompts = [
+  { word: 'CAT',   emoji: '🐱' },
+  { word: 'DOG',   emoji: '🐕' },
+  { word: 'FISH',  emoji: '🐟' },
+  { word: 'SHEEP', emoji: '🐑' },
+  { word: 'TREE',  emoji: '🌳' },
+  { word: 'SUN',   emoji: '☀️' },
+  { word: 'MOON',  emoji: '🌙' },
+  { word: 'RED',   emoji: '🔴' },
+  { word: 'GREEN', emoji: '🟢' },
+  { word: 'PINK',  emoji: '🩷' },
+  { word: 'BLUE',  emoji: '🔵' },
+  { word: 'CAR',   emoji: '🚗' },
+  { word: 'PIZZA', emoji: '🍕' },
+  { word: 'PIG',   emoji: '🐷' },
+  { word: 'HORSE', emoji: '🐴' },
+  { word: 'BOAT',  emoji: '⛵' },
+  { word: 'BOOK',  emoji: '📚' }
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let mode, curWord, curMath, score, round, streak;
+const totalRounds = 5;
+const caseRoundsToWin = 5;
+const rewardGoal = 60;
+const rewardPerGame = 10;
+const rewardPointsKey = 'stavespill_reward_points';
+const rewardClaimedKey = 'stavespill_reward_claimed';
+let spellAnswer = [], answered = false;
+let spellUseKeyboard = true;
+let spellDeck = [];
+let matchUseUppercase = false;
+let matchGuessesLeft = 2;
+let mathGuessesLeft = 2;
+let caseDeck = [], curCase = null;
+let curRead = null;
+let readDeck = [];
+let readAnswer = [];
+let curRime = null;
+let rimeDeck = [];
+let rimeGuessesLeft = 2;
+let curSpeak = null;
+let speakDeck = [];
+let recog = null;
+let listening = false;
+let micStream = null;
+let micPrimed = false;
+let listenTimer = null;
+let lastHeard = '';
+const listenWindowMs = 25000;
+let curEnglish = null;
+let englishDeck = [];
+let englishGuessesLeft = 2;
+let rewardPoints = 0;
+let rewardClaimed = false;
+let resetHoldTimer = null;
+const completedModes = {
+  spell: false,
+  match: false,
+  math: false,
+  case: false,
+  read: false,
+  rime: false,
+  speak: false,
+  english: false
+};
+
+// ── Audio ─────────────────────────────────────────────────────────────────
+const actx = new (window.AudioContext || window.webkitAudioContext)();
+function tone(freq, dur, when = 0) {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.connect(g); g.connect(actx.destination);
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(.28, actx.currentTime + when);
+  g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + when + dur);
+  o.start(actx.currentTime + when); o.stop(actx.currentTime + when + dur);
+}
+function playOk()  { tone(523,.15); tone(784,.2,.15); tone(1047,.3,.3); }
+function playNo()  { tone(220,.15); tone(160,.25,.15); }
+function playWin() { [523,659,784,1047,1319].forEach((f,i) => tone(f,.35,i*.18)); }
+
+// ── Sparkles ──────────────────────────────────────────────────────────────
+function sparks(x, y, n = 10) {
+  const fx = document.getElementById('fx');
+  const g = ['⭐','✨','💖','🌟','💕','🌸','🦄'];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    s.textContent = g[Math.random() * g.length | 0];
+    s.style.left = (x + Math.random() * 100 - 50) + 'px';
+    s.style.top  = (y + Math.random() * 100 - 50) + 'px';
+    s.style.animationDelay = (Math.random() * .35) + 's';
+    fx.appendChild(s); setTimeout(() => s.remove(), 1600);
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.random() * (i + 1) | 0;
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+function praise() { return praises[Math.random() * praises.length | 0]; }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function updateModeCards() {
+  document.querySelectorAll('.mode-card[data-mode]').forEach(btn => {
+    const modeKey = btn.dataset.mode;
+    btn.classList.toggle('done', Boolean(completedModes[modeKey]));
+  });
+}
+
+function goHome() {
+  stopListening();
+  showScreen('welcome');
+  updateModeCards();
+}
+
+function updateStreak(correct) {
+  streak = correct ? streak + 1 : 0;
+  const badge = document.getElementById('streak-badge');
+  if (streak >= 3) {
+    badge.textContent = `🔥 ${streak} på rad!`;
+    badge.classList.add('show');
+    setTimeout(() => badge.classList.remove('show'), 2200);
+  }
+}
+
+function setProgress(prefix) {
+  const maxRounds = prefix === 'case' ? caseRoundsToWin : totalRounds;
+  document.getElementById(prefix + '-prog').style.width = (round / maxRounds * 100) + '%';
+}
+
+function win(msg) {
+  if (mode && Object.prototype.hasOwnProperty.call(completedModes, mode)) {
+    completedModes[mode] = true;
+  }
+  addRewardPoints(rewardPerGame);
+  setTimeout(() => {
+    playWin();
+    sparks(window.innerWidth / 2, window.innerHeight / 2, 20);
+    document.getElementById('victory-sub').textContent = msg;
+    showScreen('victory');
+  }, 1600);
+}
+
+function readStorage(key, fallback) {
+  try {
+    const val = localStorage.getItem(key);
+    return val === null ? fallback : val;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore write failures (for example private mode restrictions).
+  }
+}
+
+function loadRewardState() {
+  const storedPoints = Number(readStorage(rewardPointsKey, '0'));
+  rewardPoints = Number.isFinite(storedPoints) && storedPoints >= 0 ? storedPoints : 0;
+  rewardClaimed = readStorage(rewardClaimedKey, '0') === '1';
+}
+
+function saveRewardState() {
+  writeStorage(rewardPointsKey, String(rewardPoints));
+  writeStorage(rewardClaimedKey, rewardClaimed ? '1' : '0');
+}
+
+function updateRewardUI() {
+  const pointsEl = document.getElementById('reward-points');
+  const fillEl = document.getElementById('reward-fill');
+  if (!pointsEl || !fillEl) return;
+  pointsEl.textContent = String(rewardPoints);
+  const pct = Math.min(rewardPoints, rewardGoal) / rewardGoal * 100;
+  fillEl.style.width = pct + '%';
+}
+
+function closeIceModal() {
+  document.getElementById('ice-modal').classList.remove('show');
+}
+
+function showIceModal() {
+  document.getElementById('ice-modal').classList.add('show');
+}
+
+function addRewardPoints(points) {
+  rewardPoints += points;
+  const reachedGoalNow = rewardPoints >= rewardGoal && !rewardClaimed;
+  if (reachedGoalNow) rewardClaimed = true;
+  saveRewardState();
+  updateRewardUI();
+  if (reachedGoalNow) {
+    setTimeout(showIceModal, 800);
+  }
+}
+
+function startResetHold() {
+  const btn = document.getElementById('parent-reset-btn');
+  if (!btn || resetHoldTimer) return;
+  btn.classList.add('holding');
+  resetHoldTimer = setTimeout(() => {
+    resetHoldTimer = null;
+    btn.classList.remove('holding');
+    confirmRewardReset();
+  }, 2000);
+}
+
+function cancelResetHold() {
+  const btn = document.getElementById('parent-reset-btn');
+  if (resetHoldTimer) {
+    clearTimeout(resetHoldTimer);
+    resetHoldTimer = null;
+  }
+  if (btn) btn.classList.remove('holding');
+}
+
+function confirmRewardReset() {
+  const ok = window.confirm('Er du sikker? Dette nullstiller alle is-poeng.');
+  if (!ok) return;
+  rewardPoints = 0;
+  rewardClaimed = false;
+  saveRewardState();
+  updateRewardUI();
+  closeIceModal();
+}
+
+function setupParentResetButton() {
+  const btn = document.getElementById('parent-reset-btn');
+  if (!btn) return;
+  btn.addEventListener('pointerdown', startResetHold);
+  btn.addEventListener('pointerup', cancelResetHold);
+  btn.addEventListener('pointerleave', cancelResetHold);
+  btn.addEventListener('pointercancel', cancelResetHold);
+}
+
+// ── Game start ────────────────────────────────────────────────────────────
+function startGame(m) {
+  mode = m; score = 0; round = 0; streak = 0;
+  if (m === 'spell') {
+    document.getElementById('spell-score').textContent = '0';
+    spellDeck = [];
+    showScreen('spell-screen'); nextSpell();
+  } else if (m === 'match') {
+    document.getElementById('match-score').textContent = '0';
+    matchUseUppercase = false;
+    showScreen('match-screen'); nextMatch();
+  } else if (m === 'math') {
+    document.getElementById('math-score').textContent = '0';
+    showScreen('math-screen'); nextMath();
+  } else if (m === 'case') {
+    document.getElementById('case-score').textContent = '0';
+    caseDeck = [];
+    showScreen('case-screen'); nextCase();
+  } else if (m === 'read') {
+    document.getElementById('read-score').textContent = '0';
+    readDeck = [];
+    showScreen('read-screen'); nextRead();
+  } else if (m === 'rime') {
+    document.getElementById('rime-score').textContent = '0';
+    rimeDeck = [];
+    showScreen('rime-screen'); nextRime();
+  } else if (m === 'speak') {
+    document.getElementById('speak-score').textContent = '0';
+    speakDeck = [];
+    showScreen('speak-screen'); nextSpeak();
+  } else {
+    document.getElementById('english-score').textContent = '0';
+    englishDeck = [];
+    showScreen('english-screen'); nextEnglish();
+  }
+}
+
+// ── SPELL GAME ────────────────────────────────────────────────────────────
+function nextSpell() {
+  answered = false; spellAnswer = [];
+  if (spellDeck.length === 0) {
+    spellDeck = shuffle(words);
+  }
+  curWord = spellDeck.pop();
+
+  const el = document.getElementById('spell-emoji');
+  el.textContent = curWord.e;
+  el.style.animation = 'none';
+  requestAnimationFrame(() => { el.style.animation = ''; });
+
+  const sc = document.getElementById('slots'); sc.innerHTML = '';
+  for (let i = 0; i < curWord.w.length; i++) {
+    const d = document.createElement('div'); d.className = 'slot'; d.id = 'sl' + i;
+    sc.appendChild(d);
+  }
+
+  const tiles = shuffle(curWord.w.split(''));
+  const tc = document.getElementById('tiles'); tc.innerHTML = '';
+  tiles.forEach((ch, i) => {
+    const b = document.createElement('button'); b.className = 'tile'; b.id = 'tl' + i;
+    b.textContent = ch.toUpperCase(); b.onclick = () => pickLetter(ch, i);
+    tc.appendChild(b);
+  });
+
+  applySpellInputMode();
+
+  document.getElementById('spell-fb').textContent = '';
+  document.getElementById('spell-fb').className = 'fb';
+  setProgress('spell');
+}
+
+function applySpellInputMode() {
+  const btn = document.getElementById('spell-input-toggle');
+  const tiles = document.getElementById('tiles');
+
+  if (spellUseKeyboard) {
+    btn.textContent = '⌨️ Tastatur: PÅ';
+    tiles.style.display = 'none';
+  } else {
+    btn.textContent = '🖱️ Bokstavknapper: PÅ';
+    tiles.style.display = 'flex';
+  }
+}
+
+function toggleSpellInputMode() {
+  spellUseKeyboard = !spellUseKeyboard;
+  applySpellInputMode();
+}
+
+function pickLetter(ch, idx) {
+  if (spellUseKeyboard) return;
+  if (answered || spellAnswer.length >= curWord.w.length) return;
+  const pos = spellAnswer.length;
+  const slot = document.getElementById('sl' + pos);
+  slot.textContent = ch.toUpperCase(); slot.classList.add('filled');
+  document.getElementById('tl' + idx).classList.add('used');
+  spellAnswer.push({ ch, idx });
+  if (spellAnswer.length === curWord.w.length) checkSpell();
+}
+
+function pickKeyboardLetter(ch) {
+  if (!spellUseKeyboard) return;
+  if (answered || spellAnswer.length >= curWord.w.length) return;
+  const pos = spellAnswer.length;
+  const slot = document.getElementById('sl' + pos);
+  slot.textContent = ch.toUpperCase();
+  slot.classList.add('filled');
+  spellAnswer.push({ ch });
+  if (spellAnswer.length === curWord.w.length) checkSpell();
+}
+
+function clearSpell() {
+  if (answered || spellAnswer.length === 0) return;
+  const last = spellAnswer.pop();
+  if (typeof last.idx === 'number') {
+    const tile = document.getElementById('tl' + last.idx);
+    if (tile) tile.classList.remove('used');
+  }
+  const slot = document.getElementById('sl' + spellAnswer.length);
+  slot.textContent = ''; slot.classList.remove('filled');
+  document.getElementById('spell-fb').textContent = '';
+}
+
+function checkSpell() {
+  const typed = spellAnswer.map(a => a.ch).join('');
+  const fb = document.getElementById('spell-fb');
+  if (typed === curWord.w) {
+    playOk(); answered = true; score++; round++;
+    document.getElementById('spell-score').textContent = score;
+    document.querySelectorAll('.slot').forEach(s => { s.classList.remove('filled'); s.classList.add('ok'); });
+    fb.textContent = praise(); fb.className = 'fb ok-txt';
+    sparks(window.innerWidth / 2, window.innerHeight / 2, 12);
+    updateStreak(true); setProgress('spell');
+    if (round >= totalRounds) win('Du er en ekte stavemester! 📚');
+    else setTimeout(nextSpell, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    document.querySelectorAll('.slot').forEach(s => s.classList.add('bad'));
+    fb.textContent = 'Prøv igjen! 💪'; fb.className = 'fb bad-txt';
+    setTimeout(() => {
+      document.querySelectorAll('.slot').forEach(s => { s.classList.remove('bad', 'filled'); s.textContent = ''; });
+      spellAnswer.forEach(a => {
+        if (typeof a.idx === 'number') {
+          const tile = document.getElementById('tl' + a.idx);
+          if (tile) tile.classList.remove('used');
+        }
+      });
+      spellAnswer = [];
+      fb.textContent = ''; fb.className = 'fb';
+    }, 900);
+  }
+}
+
+document.addEventListener('keydown', (ev) => {
+  if (mode !== 'spell' || !spellUseKeyboard || answered || !curWord) return;
+  if (ev.key === 'Backspace') {
+    ev.preventDefault();
+    clearSpell();
+    return;
+  }
+
+  const key = ev.key.toLowerCase();
+  if (key.length !== 1) return;
+  if (!/[a-zæøå]/.test(key)) return;
+
+  ev.preventDefault();
+  pickKeyboardLetter(key);
+});
+
+// ── MATCH GAME ────────────────────────────────────────────────────────────
+function nextMatch() {
+  answered = false;
+  matchGuessesLeft = 2;
+  curWord = words[Math.random() * words.length | 0];
+  applyMatchCaseMode();
+  document.getElementById('match-word').textContent = formatMatchWord(curWord.w);
+  document.getElementById('match-fb').textContent = '';
+  document.getElementById('match-fb').className = 'fb';
+
+  const opts = shuffle([curWord, ...shuffle(words.filter(w => w !== curWord)).slice(0, 3)]);
+  const grid = document.getElementById('img-grid'); grid.innerHTML = '';
+  opts.forEach(opt => {
+    const b = document.createElement('button'); b.className = 'img-opt';
+    b.dataset.word = opt.w;
+    b.textContent = opt.e; b.onclick = ev => checkMatch(opt, b, ev);
+    grid.appendChild(b);
+  });
+  setProgress('match');
+}
+
+function formatMatchWord(word) {
+  return matchUseUppercase ? word.toUpperCase() : word.toLowerCase();
+}
+
+function applyMatchCaseMode() {
+  const btn = document.getElementById('match-case-toggle');
+  const wordEl = document.getElementById('match-word');
+  if (!btn) return;
+
+  if (matchUseUppercase) {
+    btn.textContent = '🔠 STORE bokstaver: PÅ';
+    if (wordEl) wordEl.style.textTransform = 'uppercase';
+  } else {
+    btn.textContent = '🔡 Små bokstaver: PÅ';
+    if (wordEl) wordEl.style.textTransform = 'none';
+  }
+}
+
+function toggleMatchCaseMode() {
+  matchUseUppercase = !matchUseUppercase;
+  applyMatchCaseMode();
+  if (mode === 'match' && curWord) {
+    document.getElementById('match-word').textContent = formatMatchWord(curWord.w);
+  }
+}
+
+function checkMatch(opt, btn, ev) {
+  if (answered) return;
+  const fb = document.getElementById('match-fb');
+  const optionButtons = [...document.querySelectorAll('.img-opt')];
+  if (opt.w === curWord.w) {
+    optionButtons.forEach(b => b.style.pointerEvents = 'none');
+    playOk(); answered = true; score++; round++;
+    document.getElementById('match-score').textContent = score;
+    btn.classList.add('ok');
+    fb.textContent = praise(); fb.className = 'fb ok-txt';
+    sparks(ev.clientX, ev.clientY, 12);
+    updateStreak(true); setProgress('match');
+    if (round >= totalRounds) win('Du er en ekte stavemester! 📚');
+    else setTimeout(nextMatch, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    btn.classList.add('bad');
+    matchGuessesLeft--;
+
+    if (matchGuessesLeft <= 0) {
+      optionButtons.forEach(b => b.style.pointerEvents = 'none');
+      const correctBtn = optionButtons.find(b => b.dataset.word === curWord.w);
+      if (correctBtn) correctBtn.classList.add('ok');
+
+      fb.textContent = 'To forsøk brukt. Vi prøver et nytt ord!';
+      fb.className = 'fb bad-txt';
+      setTimeout(nextMatch, 1500);
+    } else {
+      btn.style.pointerEvents = 'none';
+      fb.textContent = 'Ikke den, prøv en annen.';
+      fb.className = 'fb bad-txt';
+    }
+  }
+}
+
+// ── READING GAME (fyll inn ordet som mangler) ────────────────────────────
+function nextRead() {
+  answered = false;
+  readAnswer = [];
+
+  if (readDeck.length === 0) {
+    readDeck = shuffle(readPrompts);
+  }
+
+  curRead = readDeck.pop();
+  const blank = curRead.word.split('').map(() => '_').join(' ');
+  document.getElementById('read-sentence').textContent = curRead.before + ' ' + blank;
+  document.getElementById('read-emoji').textContent = curRead.emoji;
+  document.getElementById('read-fb').textContent = '';
+  document.getElementById('read-fb').className = 'fb';
+
+  const sc = document.getElementById('read-slots'); sc.innerHTML = '';
+  for (let i = 0; i < curRead.word.length; i++) {
+    const d = document.createElement('div'); d.className = 'slot'; d.id = 'rsl' + i;
+    sc.appendChild(d);
+  }
+
+  const tc = document.getElementById('read-tiles'); tc.innerHTML = '';
+  shuffle(curRead.word.split('')).forEach((ch, i) => {
+    const b = document.createElement('button'); b.className = 'tile'; b.id = 'rtl' + i;
+    b.textContent = ch.toUpperCase(); b.onclick = () => pickReadLetter(ch, i);
+    tc.appendChild(b);
+  });
+
+  setProgress('read');
+}
+
+function pickReadLetter(ch, idx) {
+  if (answered || !curRead || readAnswer.length >= curRead.word.length) return;
+  const pos = readAnswer.length;
+  const slot = document.getElementById('rsl' + pos);
+  slot.textContent = ch.toUpperCase(); slot.classList.add('filled');
+  document.getElementById('rtl' + idx).classList.add('used');
+  readAnswer.push({ ch, idx });
+  if (readAnswer.length === curRead.word.length) checkRead();
+}
+
+function clearRead() {
+  if (answered || readAnswer.length === 0) return;
+  const last = readAnswer.pop();
+  const tile = document.getElementById('rtl' + last.idx);
+  if (tile) tile.classList.remove('used');
+  const slot = document.getElementById('rsl' + readAnswer.length);
+  slot.textContent = ''; slot.classList.remove('filled');
+  document.getElementById('read-fb').textContent = '';
+}
+
+function checkRead() {
+  const typed = readAnswer.map(a => a.ch).join('');
+  const fb = document.getElementById('read-fb');
+  if (typed === curRead.word) {
+    playOk(); answered = true; score++; round++;
+    document.getElementById('read-score').textContent = score;
+    document.getElementById('read-sentence').textContent =
+      curRead.before + ' ' + curRead.word.toUpperCase() + '!';
+    document.querySelectorAll('#read-slots .slot').forEach(s => { s.classList.remove('filled'); s.classList.add('ok'); });
+    fb.textContent = praise(); fb.className = 'fb ok-txt';
+    sparks(window.innerWidth / 2, window.innerHeight / 2, 12);
+    updateStreak(true); setProgress('read');
+    if (round >= totalRounds) win('Du leser kjempefint! 📖');
+    else setTimeout(nextRead, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    document.querySelectorAll('#read-slots .slot').forEach(s => s.classList.add('bad'));
+    fb.textContent = 'Prøv igjen! 💪'; fb.className = 'fb bad-txt';
+    setTimeout(() => {
+      document.querySelectorAll('#read-slots .slot').forEach(s => { s.classList.remove('bad', 'filled'); s.textContent = ''; });
+      readAnswer.forEach(a => {
+        const tile = document.getElementById('rtl' + a.idx);
+        if (tile) tile.classList.remove('used');
+      });
+      readAnswer = [];
+      fb.textContent = ''; fb.className = 'fb';
+    }, 900);
+  }
+}
+
+// ── RHYME GAME ────────────────────────────────────────────────────────────
+function nextRime() {
+  answered = false;
+  rimeGuessesLeft = 2;
+
+  if (rimeDeck.length === 0) {
+    rimeDeck = shuffle(rhymePrompts);
+  }
+
+  curRime = rimeDeck.pop();
+  document.getElementById('rime-word').textContent = curRime.w.toUpperCase();
+  document.getElementById('rime-emoji').textContent = curRime.e;
+  document.getElementById('rime-fb').textContent = '';
+  document.getElementById('rime-fb').className = 'fb';
+
+  // Distractors: words that do NOT share the rhyme ending
+  const banned = [curRime.w.slice(-2), curRime.r.slice(-2)];
+  const pool = words.filter(x =>
+    !banned.includes(x.w.slice(-2)) &&
+    x.e !== curRime.e && x.e !== curRime.re
+  );
+  const wrong = shuffle(pool).slice(0, 3);
+  const options = shuffle([
+    { w: curRime.r, e: curRime.re },
+    ...wrong
+  ]);
+
+  const grid = document.getElementById('rime-grid');
+  grid.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'img-opt';
+    btn.dataset.word = opt.w;
+    btn.innerHTML = `${opt.e}<span class="opt-word">${opt.w.toUpperCase()}</span>`;
+    btn.onclick = ev => checkRime(opt, btn, ev);
+    grid.appendChild(btn);
+  });
+
+  setProgress('rime');
+}
+
+function checkRime(opt, btn, ev) {
+  if (answered || !curRime) return;
+
+  const fb = document.getElementById('rime-fb');
+  const optionButtons = [...document.querySelectorAll('#rime-grid .img-opt')];
+
+  if (opt.w === curRime.r) {
+    optionButtons.forEach(b => b.style.pointerEvents = 'none');
+    playOk(); answered = true; score++; round++;
+    document.getElementById('rime-score').textContent = score;
+    btn.classList.add('ok');
+    fb.textContent = `${curRime.w.toUpperCase()} – ${curRime.r.toUpperCase()}! ` + praise();
+    fb.className = 'fb ok-txt';
+    sparks(ev.clientX, ev.clientY, 12);
+    updateStreak(true); setProgress('rime');
+    if (round >= totalRounds) win('Du er en ekte rimemester! 🎵');
+    else setTimeout(nextRime, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    btn.classList.add('bad');
+    rimeGuessesLeft--;
+
+    if (rimeGuessesLeft <= 0) {
+      optionButtons.forEach(b => b.style.pointerEvents = 'none');
+      const correctBtn = optionButtons.find(b => b.dataset.word === curRime.r);
+      if (correctBtn) correctBtn.classList.add('ok');
+
+      fb.textContent = 'To forsøk brukt. Vi prøver neste!';
+      fb.className = 'fb bad-txt';
+      setTimeout(nextRime, 1500);
+    } else {
+      btn.style.pointerEvents = 'none';
+      fb.textContent = 'Ikke den, prøv en annen.';
+      fb.className = 'fb bad-txt';
+    }
+  }
+}
+
+// ── ENGLISH GAME ─────────────────────────────────────────────────────────
+function nextEnglish() {
+  answered = false;
+  englishGuessesLeft = 2;
+
+  if (round >= totalRounds) {
+    win('Du er super i engelsk! 🇬🇧');
+    return;
+  }
+
+  if (englishDeck.length === 0) {
+    englishDeck = shuffle(englishPrompts);
+  }
+
+  curEnglish = englishDeck.pop();
+  document.getElementById('english-word').textContent = curEnglish.word;
+  document.getElementById('english-fb').textContent = '';
+  document.getElementById('english-fb').className = 'fb';
+
+  const wrong = shuffle(englishPrompts.filter(p => p.emoji !== curEnglish.emoji)).slice(0, 3).map(p => p.emoji);
+  const options = shuffle([curEnglish.emoji, ...wrong]);
+  const grid = document.getElementById('english-grid');
+  grid.innerHTML = '';
+
+  options.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'img-opt';
+    btn.dataset.emoji = emoji;
+    btn.textContent = emoji;
+    btn.onclick = ev => checkEnglish(emoji, btn, ev);
+    grid.appendChild(btn);
+  });
+
+  setProgress('english');
+}
+
+function checkEnglish(emoji, btn, ev) {
+  if (answered || !curEnglish) return;
+
+  const fb = document.getElementById('english-fb');
+  const optionButtons = [...document.querySelectorAll('#english-grid .img-opt')];
+
+  if (emoji === curEnglish.emoji) {
+    optionButtons.forEach(b => b.style.pointerEvents = 'none');
+    playOk(); answered = true; score++; round++;
+    document.getElementById('english-score').textContent = score;
+    btn.classList.add('ok');
+    fb.textContent = praise(); fb.className = 'fb ok-txt';
+    sparks(ev.clientX, ev.clientY, 12);
+    updateStreak(true); setProgress('english');
+    if (round >= totalRounds) win('Du er super i engelsk! 🇬🇧');
+    else setTimeout(nextEnglish, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    btn.classList.add('bad');
+    englishGuessesLeft--;
+
+    if (englishGuessesLeft <= 0) {
+      optionButtons.forEach(b => b.style.pointerEvents = 'none');
+      const correctBtn = optionButtons.find(b => b.dataset.emoji === curEnglish.emoji);
+      if (correctBtn) correctBtn.classList.add('ok');
+
+      fb.textContent = 'To forsøk brukt. Vi prøver neste!';
+      fb.className = 'fb bad-txt';
+      setTimeout(nextEnglish, 1500);
+    } else {
+      btn.style.pointerEvents = 'none';
+      fb.textContent = 'Ikke den, prøv en annen.';
+      fb.className = 'fb bad-txt';
+    }
+  }
+}
+
+// ── SPEAK GAME (Si Ordet) ─────────────────────────────────────────────────
+function nextSpeak() {
+  answered = false;
+  stopListening();
+
+  if (speakDeck.length === 0) {
+    speakDeck = shuffle(words);
+  }
+
+  curSpeak = speakDeck.pop();
+  document.getElementById('speak-word').textContent = curSpeak.w.toUpperCase();
+  document.getElementById('speak-emoji').textContent = '❓';
+  document.getElementById('speak-fb').textContent = '';
+  document.getElementById('speak-fb').className = 'fb';
+  document.getElementById('mic-status').textContent = 'Trykk på mikrofonen og si ordet!';
+  setProgress('speak');
+}
+
+function skipSpeak() {
+  if (mode !== 'speak' || answered) return;
+  nextSpeak();
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(
+        prev[j] + 1,
+        cur[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+
+// Godkjenn uttalen selv om den ikke er helt perfekt
+function speechMatches(transcript, target) {
+  const said = transcript.toLowerCase().trim();
+  if (!said) return false;
+  const tol = target.length <= 3 ? 1 : 2;
+  const tokens = said.split(/\s+/);
+  tokens.push(said.replace(/\s+/g, ''));
+  return tokens.some(t => t === target || levenshtein(t, target) <= tol);
+}
+
+// Hold mikrofonen åpen hele økten, så nettleseren bare spør om lov én gang
+// (spesielt viktig når spillet åpnes som lokal fil).
+function primeMicStream() {
+  if (micPrimed || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  micPrimed = true;
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(s => { micStream = s; })
+    .catch(() => { micPrimed = false; });
+}
+
+function stopListening() {
+  listening = false;
+  if (listenTimer) { clearTimeout(listenTimer); listenTimer = null; }
+  if (recog) {
+    recog.onresult = recog.onerror = recog.onend = null;
+    try { recog.abort(); } catch { /* already stopped */ }
+    recog = null;
+  }
+  const btn = document.getElementById('mic-btn');
+  if (btn) btn.classList.remove('listening');
+}
+
+function startListening() {
+  if (mode !== 'speak' || answered || listening) return;
+  const status = document.getElementById('mic-status');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    status.textContent = 'Denne nettleseren har ikke mikrofon-spill. Prøv Chrome eller Safari!';
+    return;
+  }
+
+  primeMicStream();
+  listening = true;
+  lastHeard = '';
+  document.getElementById('mic-btn').classList.add('listening');
+  status.textContent = 'Jeg lytter... Ta den tiden du trenger! 🎙️';
+
+  // Hun får et romslig vindu til å lese ordet; gjenkjenneren startes
+  // stille på nytt hvis den gir opp før tiden er ute.
+  listenTimer = setTimeout(() => {
+    if (listening && !answered) finishListening();
+  }, listenWindowMs);
+
+  beginRecognition();
+}
+
+function beginRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recog = new SR();
+  recog.lang = 'nb-NO';
+  recog.continuous = true;
+  recog.interimResults = true;
+  recog.maxAlternatives = 5;
+
+  recog.onresult = ev => {
+    if (!listening || answered) return;
+    const heard = [];
+    for (let i = 0; i < ev.results.length; i++) {
+      for (let j = 0; j < ev.results[i].length; j++) {
+        heard.push(ev.results[i][j].transcript);
+      }
+    }
+    const finals = [...ev.results].filter(r => r.isFinal).map(r => r[0].transcript).join(' ').trim();
+    if (finals) lastHeard = finals;
+    else if (heard.length) lastHeard = heard[heard.length - 1].trim() || lastHeard;
+
+    if (heard.some(t => speechMatches(t, curSpeak.w))) {
+      speakSuccess();
+    } else if (finals) {
+      // Feil ord – gi et hint, men fortsett å lytte så hun kan prøve igjen
+      const fb = document.getElementById('speak-fb');
+      fb.textContent = `Jeg hørte «${finals}» – prøv igjen! 🤔`;
+      fb.className = 'fb bad-txt';
+    }
+  };
+
+  recog.onerror = ev => {
+    if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
+      stopListening();
+      document.getElementById('mic-status').textContent =
+        'Mikrofonen er ikke tillatt. En voksen må gi lov i nettleseren. 🙂';
+    }
+    // Andre feil (f.eks. no-speech) ignoreres – onend starter lyttingen på nytt.
+  };
+
+  recog.onend = () => {
+    if (!listening || answered) return;
+    try { beginRecognition(); } catch { finishListening(); }
+  };
+
+  try {
+    recog.start();
+  } catch {
+    stopListening();
+    document.getElementById('mic-status').textContent = 'Oi, noe gikk galt. Trykk og prøv igjen!';
+  }
+}
+
+function speakSuccess() {
+  stopListening();
+  playOk(); answered = true; score++; round++;
+  document.getElementById('speak-score').textContent = score;
+  document.getElementById('speak-emoji').textContent = curSpeak.e;
+  const fb = document.getElementById('speak-fb');
+  fb.textContent = '👍 ' + praise(); fb.className = 'fb ok-txt';
+  document.getElementById('mic-status').textContent = 'Ja, det var ' + curSpeak.w.toUpperCase() + '!';
+  sparks(window.innerWidth / 2, window.innerHeight / 2, 14);
+  updateStreak(true); setProgress('speak');
+  if (round >= totalRounds) win('Du leser som en superstjerne! 🎤');
+  else setTimeout(nextSpeak, 2200);
+}
+
+function finishListening() {
+  const heard = lastHeard.trim();
+  stopListening();
+  const status = document.getElementById('mic-status');
+  const fb = document.getElementById('speak-fb');
+  if (heard) {
+    playNo(); updateStreak(false);
+    fb.textContent = `Jeg hørte «${heard}» 🤔`;
+    fb.className = 'fb bad-txt';
+    status.textContent = 'Prøv en gang til – trykk på mikrofonen!';
+  } else {
+    status.textContent = 'Jeg hørte ingenting. Trykk og prøv igjen!';
+  }
+}
+
+// ── MATH GAME ─────────────────────────────────────────────────────────────
+function nextMath() {
+  answered = false;
+  mathGuessesLeft = 2;
+
+  // Build a problem: 60% addition, 40% subtraction
+  let a, b, answer, op, sign;
+  if (Math.random() < 0.6) {
+    // Addition: a + b ≤ 10, both ≥ 1
+    a = 1 + (Math.random() * 9 | 0);          // 1–9
+    b = 1 + (Math.random() * (10 - a) | 0);   // 1 to (10-a)
+    op = '+'; sign = '+'; answer = a + b;
+  } else {
+    // Subtraction: a − b ≥ 1
+    a = 2 + (Math.random() * 9 | 0);          // 2–10
+    b = 1 + (Math.random() * (a - 1) | 0);    // 1 to (a-1)
+    op = '−'; sign = '-'; answer = a - b;
+  }
+  curMath = { a, b, op, answer };
+
+  document.getElementById('math-eq').textContent = `${a} ${op} ${b} = ?`;
+
+  // Emoji dot visualization
+  const e = dotEmoji[Math.random() * dotEmoji.length | 0];
+  const groupA = e.repeat(a);
+  const groupB = e.repeat(b);
+  document.getElementById('math-dots').textContent =
+    sign === '+' ? `${groupA} + ${groupB}` : `${groupA} − ${groupB}`;
+
+  // Generate 4 answer options (correct + 3 nearby unique numbers in 1–10)
+  const opts = makeMathOpts(answer);
+  const grid = document.getElementById('num-grid'); grid.innerHTML = '';
+  opts.forEach(n => {
+    const btn = document.createElement('button'); btn.className = 'num-btn';
+    btn.dataset.value = String(n);
+    btn.textContent = n; btn.onclick = ev => checkMath(n, btn, ev);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('math-fb').textContent = '';
+  document.getElementById('math-fb').className = 'fb';
+  setProgress('math');
+}
+
+function makeMathOpts(correct) {
+  const pool = new Set([correct]);
+  // Try ±1, ±2, ±3 first
+  for (let d = 1; d <= 5 && pool.size < 4; d++) {
+    if (correct - d >= 1  && correct - d <= 10) pool.add(correct - d);
+    if (pool.size < 4 && correct + d >= 1 && correct + d <= 10) pool.add(correct + d);
+  }
+  // Fallback: fill from 1 upwards
+  for (let i = 1; pool.size < 4; i++) if (!pool.has(i)) pool.add(i);
+  return shuffle([...pool]);
+}
+
+function checkMath(n, btn, ev) {
+  if (answered) return;
+  const fb = document.getElementById('math-fb');
+  const optionButtons = [...document.querySelectorAll('.num-btn')];
+  if (n === curMath.answer) {
+    optionButtons.forEach(b => b.style.pointerEvents = 'none');
+    playOk(); answered = true; score++; round++;
+    document.getElementById('math-score').textContent = score;
+    btn.classList.add('ok');
+    fb.textContent = praise(); fb.className = 'fb ok-txt';
+    sparks(ev.clientX, ev.clientY, 12);
+    updateStreak(true); setProgress('math');
+    if (round >= totalRounds) win('Du er en ekte mattegeni! 🔢');
+    else setTimeout(nextMath, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    btn.classList.add('bad');
+    mathGuessesLeft--;
+
+    if (mathGuessesLeft <= 0) {
+      optionButtons.forEach(b => b.style.pointerEvents = 'none');
+      const correctBtn = optionButtons.find(b => b.dataset.value === String(curMath.answer));
+      if (correctBtn) correctBtn.classList.add('ok');
+
+      fb.textContent = 'To forsøk brukt. Ny oppgave!';
+      fb.className = 'fb bad-txt';
+      setTimeout(nextMath, 1500);
+    } else {
+      btn.style.pointerEvents = 'none';
+      fb.textContent = 'Ikke riktig, prøv en annen.';
+      fb.className = 'fb bad-txt';
+    }
+  }
+}
+
+// ── CASE GAME ─────────────────────────────────────────────────────────────
+function nextCase() {
+  answered = false;
+
+  if (round >= caseRoundsToWin) {
+    win('Du kan hele alfabetet liten til stor! 🔠');
+    return;
+  }
+
+  if (caseDeck.length === 0) {
+    caseDeck = shuffle(alphabetPairs);
+  }
+
+  curCase = caseDeck.pop();
+  document.getElementById('case-lower').textContent = curCase.lower;
+  document.getElementById('case-fb').textContent = '';
+  document.getElementById('case-fb').className = 'fb';
+
+  const wrong = shuffle(alphabetPairs.filter(p => p.upper !== curCase.upper)).slice(0, 4).map(p => p.upper);
+  const options = shuffle([curCase.upper, ...wrong]);
+  const grid = document.getElementById('case-grid');
+  grid.innerHTML = '';
+
+  options.forEach(letter => {
+    const btn = document.createElement('button');
+    btn.className = 'case-btn';
+    btn.textContent = letter;
+    btn.onclick = ev => checkCase(letter, btn, ev);
+    grid.appendChild(btn);
+  });
+
+  setProgress('case');
+}
+
+function checkCase(letter, btn, ev) {
+  if (answered || !curCase) return;
+
+  const fb = document.getElementById('case-fb');
+  document.querySelectorAll('.case-btn').forEach(b => b.style.pointerEvents = 'none');
+
+  if (letter === curCase.upper) {
+    playOk(); answered = true; score++; round++;
+    document.getElementById('case-score').textContent = score;
+    btn.classList.add('ok');
+    fb.textContent = praise(); fb.className = 'fb ok-txt';
+    sparks(ev.clientX, ev.clientY, 12);
+    updateStreak(true); setProgress('case');
+    setTimeout(nextCase, 1800);
+  } else {
+    playNo(); updateStreak(false);
+    btn.classList.add('bad');
+    fb.textContent = 'Ikke helt, prøv igjen 💪'; fb.className = 'fb bad-txt';
+    setTimeout(() => {
+      btn.classList.remove('bad');
+      document.querySelectorAll('.case-btn').forEach(b => b.style.pointerEvents = 'auto');
+      fb.textContent = ''; fb.className = 'fb';
+    }, 900);
+  }
+}
+
+// ── Floating background decorations ──────────────────────────────────────
+const decoGlyphs = ['🦄','🐴','🦋','💖','⭐','🌸','✨','🎈','🌺','🌷'];
+decoGlyphs.forEach((g, i) => {
+  const d = document.createElement('div'); d.className = 'bg-deco';
+  d.textContent = g;
+  d.style.left = (5 + i * 9.5) + '%';
+  d.style.bottom = '-10%';
+  d.style.animationDuration = (12 + Math.random() * 10) + 's';
+  d.style.animationDelay = (i * 1.4) + 's';
+  document.body.appendChild(d);
+});
+
+updateModeCards();
+loadRewardState();
+updateRewardUI();
+setupParentResetButton();
+</script>
+</body>
+</html>
