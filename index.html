@@ -12,7 +12,9 @@ body {
   background: linear-gradient(180deg, #8fd3ff 0%, #c4e6ff 22%, #ffd9ee 55%, #ffe9c4 85%, #fff3d4 100%);
   min-height: 100vh;
   user-select: none;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── Sky decorations ── */
@@ -53,6 +55,7 @@ body {
 .screen { display: none; flex-direction: column; align-items: center; justify-content: center;
   min-height: 100vh; padding: 20px; position: relative; z-index: 1; }
 .screen.active { display: flex; }
+.game-body { margin-top: 80px; display: flex; flex-direction: column; align-items: center; width: 100%; }
 
 /* ── Welcome ── */
 #welcome h1 {
@@ -120,9 +123,16 @@ body {
   background: none; border: 3px solid #ff4da6; border-radius: 20px;
   padding: 7px 16px; font-family: inherit; font-size: 1rem; color: #c2185b; cursor: pointer;
 }
-.hdr-score { font-size: 1.3rem; color: #c2185b; font-weight: bold; }
-.prog-wrap { width: 100px; height: 14px; background: rgba(255,77,166,.2); border-radius: 8px; overflow: hidden; }
-.prog-fill { height: 100%; background: linear-gradient(90deg,#ff69b4,#ff1493); border-radius: 8px; transition: width .4s; }
+.hdr-score { display: none; }
+.star-track {
+  display: flex; gap: 5px; align-items: center;
+  background: rgba(255,255,255,.7);
+  padding: 4px 12px; border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(194,24,91,.15);
+}
+.star-slot { font-size: 1.7rem; line-height: 1; filter: grayscale(1) opacity(.35); }
+.star-slot.earned { filter: none; text-shadow: 0 2px 8px rgba(255,180,0,.7); }
+.star-slot.new { animation: pop .5s cubic-bezier(.34,1.56,.64,1); }
 
 /* ── Emoji display ── */
 .big-emoji {
@@ -566,8 +576,10 @@ body {
 .ice-ok:active { transform: translateY(3px); box-shadow: 0 3px 0 #f06292; }
 
 @media (max-width: 760px), (max-height: 820px) {
-  .screen { padding-bottom: 130px; }
-  #welcome { padding-bottom: 140px; }
+  .screen { justify-content: flex-start; padding-top: 76px; padding-bottom: 40px; }
+  #welcome, #victory { padding-top: 20px; padding-bottom: 140px; }
+  .game-body { margin-top: 0; }
+  .star-slot { font-size: 1.4rem; }
   #welcome h1 { font-size: clamp(1.8rem, 7vw, 2.6rem); }
   .welcome-modes {
     gap: 10px;
@@ -666,9 +678,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="spell-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="spell-prog" style="width:0%"></div></div>
+    <div class="star-track" id="spell-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <button class="input-toggle-btn" id="spell-input-toggle" onclick="toggleSpellInputMode()">⌨️ Tastatur: PÅ</button>
     <div class="pic-frame"><span class="big-emoji" id="spell-emoji">🐕</span></div>
     <div class="slots" id="slots"></div>
@@ -683,9 +695,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="match-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="match-prog" style="width:0%"></div></div>
+    <div class="star-track" id="match-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <button class="input-toggle-btn" id="match-case-toggle" onclick="toggleMatchCaseMode()">🔡 Små bokstaver: PÅ</button>
     <div class="big-word" id="match-word">HUND</div>
     <div class="fb" id="match-fb"></div>
@@ -698,9 +710,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="math-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="math-prog" style="width:0%"></div></div>
+    <div class="star-track" id="math-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <div class="label">Hva er svaret?</div>
     <div class="math-eq" id="math-eq">3 + 4 = ?</div>
     <div class="math-dots" id="math-dots"></div>
@@ -714,9 +726,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="case-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="case-prog" style="width:0%"></div></div>
+    <div class="star-track" id="case-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <div class="label">Hvilken STOR bokstav passer til:</div>
     <div class="case-lower" id="case-lower">a</div>
     <div class="fb" id="case-fb"></div>
@@ -729,9 +741,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="read-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="read-prog" style="width:0%"></div></div>
+    <div class="star-track" id="read-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <div class="label">Les setningen og stav ordet som mangler:</div>
     <div class="read-sentence" id="read-sentence">JENTA LESER EN _ _ _</div>
     <div class="pic-frame" style="width:clamp(100px,26vw,140px); height:clamp(100px,26vw,140px); border-radius:28px;">
@@ -749,9 +761,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="rime-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="rime-prog" style="width:0%"></div></div>
+    <div class="star-track" id="rime-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <div class="label">Hvilket bilde rimer på ordet?</div>
     <div class="big-word" id="rime-word">KATT</div>
     <div class="pic-frame" style="width:clamp(90px,24vw,130px); height:clamp(90px,24vw,130px); border-radius:26px;">
@@ -767,9 +779,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="speak-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="speak-prog" style="width:0%"></div></div>
+    <div class="star-track" id="speak-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <div class="label">Les ordet høyt:</div>
     <div class="big-word" id="speak-word">HUND</div>
     <div class="pic-frame" style="width:clamp(100px,26vw,140px); height:clamp(100px,26vw,140px); border-radius:28px;">
@@ -787,9 +799,9 @@ body {
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">← Hjem</button>
     <div class="hdr-score">⭐ <span id="english-score">0</span></div>
-    <div class="prog-wrap"><div class="prog-fill" id="english-prog" style="width:0%"></div></div>
+    <div class="star-track" id="english-prog"></div>
   </div>
-  <div style="margin-top:80px; display:flex; flex-direction:column; align-items:center; width:100%">
+  <div class="game-body">
     <div class="label">Trykk på bildet som passer ordet:</div>
     <div class="big-word" id="english-word">DOG</div>
     <div class="fb" id="english-fb"></div>
@@ -922,8 +934,8 @@ const englishPrompts = [
 
 // ── State ─────────────────────────────────────────────────────────────────
 let mode, curWord, curMath, score, round, streak;
-const totalRounds = 5;
-const caseRoundsToWin = 5;
+const totalRounds = 7;
+const caseRoundsToWin = 7;
 const rewardGoal = 60;
 const rewardPerGame = 10;
 const rewardPointsKey = 'stavespill_reward_points';
@@ -1009,6 +1021,9 @@ function praise() { return praises[Math.random() * praises.length | 0]; }
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // Is-poeng-panelet vises bare på forsiden og seiersskjermen, ikke inne i spill
+  const rewardPanel = document.querySelector('.reward-panel');
+  if (rewardPanel) rewardPanel.style.display = (id === 'welcome' || id === 'victory') ? '' : 'none';
 }
 function updateModeCards() {
   document.querySelectorAll('.mode-card[data-mode]').forEach(btn => {
@@ -1035,7 +1050,15 @@ function updateStreak(correct) {
 
 function setProgress(prefix) {
   const maxRounds = prefix === 'case' ? caseRoundsToWin : totalRounds;
-  document.getElementById(prefix + '-prog').style.width = (round / maxRounds * 100) + '%';
+  const el = document.getElementById(prefix + '-prog');
+  if (!el) return;
+  let html = '';
+  for (let i = 0; i < maxRounds; i++) {
+    const earned = i < round;
+    const isNew = i === round - 1;
+    html += `<span class="star-slot${earned ? ' earned' : ''}${earned && isNew ? ' new' : ''}">⭐</span>`;
+  }
+  el.innerHTML = html;
 }
 
 function win(msg) {
@@ -1654,33 +1677,19 @@ function skipSpeak() {
   nextSpeak();
 }
 
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  if (!m) return n;
-  if (!n) return m;
-  let prev = Array.from({ length: n + 1 }, (_, i) => i);
-  for (let i = 1; i <= m; i++) {
-    const cur = [i];
-    for (let j = 1; j <= n; j++) {
-      cur[j] = Math.min(
-        prev[j] + 1,
-        cur[j - 1] + 1,
-        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-      );
-    }
-    prev = cur;
-  }
-  return prev[n];
-}
-
-// Godkjenn uttalen selv om den ikke er helt perfekt
+// Krever at kjernen i ordet er riktig uttalt. Tillater kun vanlige norske
+// bøyningsendelser (f.eks. "hunden"/"hunder" for "hund"), ikke andre bokstavfeil.
+const wordEndings = ['en', 'et', 'ene', 'ere', 'er', 'a', 's'];
 function speechMatches(transcript, target) {
   const said = transcript.toLowerCase().trim();
   if (!said) return false;
-  const tol = target.length <= 3 ? 1 : 2;
   const tokens = said.split(/\s+/);
   tokens.push(said.replace(/\s+/g, ''));
-  return tokens.some(t => t === target || levenshtein(t, target) <= tol);
+  return tokens.some(t => {
+    if (t === target) return true;
+    if (t.startsWith(target)) return wordEndings.includes(t.slice(target.length));
+    return false;
+  });
 }
 
 // Hold mikrofonen åpen hele økten, så nettleseren bare spør om lov én gang
