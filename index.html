@@ -658,14 +658,14 @@ body {
     <button class="mode-card" data-mode="case" onclick="startGame('case')">
       <span class="mode-icon">🔠</span> Små bokstaver
     </button>
-    <button class="mode-card" data-mode="read" onclick="startGame('read')">
-      <span class="mode-icon">📖</span> LESE
+    <button class="mode-card" data-mode="speak" onclick="startGame('speak')">
+      <span class="mode-icon">🎤</span> SI ORDET
     </button>
     <button class="mode-card" data-mode="rime" onclick="startGame('rime')">
       <span class="mode-icon">🎵</span> RIME
     </button>
-    <button class="mode-card" data-mode="speak" onclick="startGame('speak')">
-      <span class="mode-icon">🎤</span> SI ORDET
+    <button class="mode-card" data-mode="read" onclick="startGame('read')">
+      <span class="mode-icon">📖</span> LESE
     </button>
     <button class="mode-card" data-mode="english" onclick="startGame('english')">
       <span class="mode-icon">🇬🇧</span> ENGELSK
@@ -934,8 +934,8 @@ const englishPrompts = [
 
 // ── State ─────────────────────────────────────────────────────────────────
 let mode, curWord, curMath, score, round, streak;
-const totalRounds = 7;
-const caseRoundsToWin = 7;
+const totalRounds = 6;
+const caseRoundsToWin = 6;
 const rewardGoal = 60;
 const rewardPerGame = 10;
 const rewardPointsKey = 'stavespill_reward_points';
